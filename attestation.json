@@ -1,0 +1,9 @@
+{
+  "pluginId": "neodex.constellation",
+  "repo": "NDesumeur/neodex-plugin-constellation",
+  "version": "1.0.0",
+  "sha256": "263b4b38e2fb69c5c32a7cfffae49aa6e69993ee02f17e21dc454e189e91c1c8",
+  "approvedAt": "2026-11-20T03:12:25.512Z",
+  "neobase": ">=4.1.0",
+  "signature": "ulNG2uOVgBumEM1mH6r7ODrgGlUceYF4OD4Nt8ANzTa2XcGxxRq70OJm9GMqsKTamYBZoxYnCghJ+p+57hbwAA=="
+}
