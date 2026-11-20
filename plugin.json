@@ -1,9 +1,9 @@
 {
   "id": "neodex.constellation",
-  "name": "Constellation",
-  "version": "1.0.0",
+  "name": "Orbites",
+  "version": "1.0.1",
   "author": "NDesumeur",
-  "description": "Jeu de rythme à la souris dans le ciel de nuit : les étoiles s'allument sur les temps de la musique et une comète file de l'une à l'autre, à la bonne vitesse. Suis-la et arrive sur chaque étoile quand son cercle se referme : ni en retard, ni trop tôt. Chaque groupe d'étoiles touchées trace une constellation qui reste dans le ciel. Les 1200 morceaux de Rythme notés de 1 à 10 étoiles, ou des niveaux créés depuis ta musique ; combo, note de S à D.",
+  "description": "Jeu de rythme dans l'espace : une planète tourne autour de son étoile, sur trois orbites, un tour toutes les deux mesures. Sur chaque note, une étoile filante attend sur l'orbite voisine et une comète arrive sur la tienne : saute pile sur le temps, vers l'extérieur (↑ ou J/K) ou l'intérieur (↓ ou F/D), pour l'attraper. Le mauvais sens, c'est la comète. Une traînée dorée : garde la touche jusqu'à son bout. Les 1200 morceaux de Rythme notés de 1 à 10 étoiles, ou des niveaux créés depuis ta musique ; combo, note de S à D. Se joue au clavier ou à la manette.",
   "icon": "icon.png",
   "entry": "index.js",
   "view": "constellation",
@@ -17,7 +17,7 @@
   "syncMode": "progression",
   "syncInfo": "Scores et notes par niveau, réglages.",
   "mobile": false,
-  "gamepad": false,
+  "gamepad": true,
   "system": false,
   "dependencies": {
     "neodex.music": ">=1.3.0"

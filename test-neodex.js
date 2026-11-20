@@ -3,7 +3,7 @@
 module.exports = async ({ pj, sleep }) => {
   const key = k => pj(`document.dispatchEvent(new KeyboardEvent('keydown', {key: '${k}', bubbles: true})), 0`);
   const label = () => pj(`document.getElementById('gc').getAttribute('aria-label') || ''`);
-  const shot = async n => { if (!process.env.NEO_SHOTS) return; const d = await pj(`document.getElementById('gc').toDataURL()`); require('fs').writeFileSync(require('path').join(process.env.NEO_SHOTS, 'Constellation-' + n + '.png'), Buffer.from(d.split(',')[1], 'base64')); };
+  const shot = async n => { if (!process.env.NEO_SHOTS) return; const d = await pj(`document.getElementById('gc').toDataURL()`); require('fs').writeFileSync(require('path').join(process.env.NEO_SHOTS, 'Orbites-' + n + '.png'), Buffer.from(d.split(',')[1], 'base64')); };
   await pj(`document.querySelector('#rhSongs .rhSong .btn')?.click(), 0`); await sleep(1000);  // l'étiquette « prêt » du morceau d'avant doit d'abord disparaître
   for (let i = 0; i < 40 && !/: prêt,/.test(await label()); i++) await sleep(500);
   if (!/: prêt,/.test(await label())) throw new Error('le morceau devait se préparer : « ' + await label() + ' »');
@@ -12,14 +12,16 @@ module.exports = async ({ pj, sleep }) => {
   await key(' '); await sleep(6500);
   const errs = await pj(`window.__e.join(' | ')`); if (errs) throw new Error('erreur : ' + errs);
   const judged = l => { const m = /: en jeu, score (\d+), combo \d+, parfait (\d+), bien (\d+), ok (\d+), raté (\d+)/.exec(l); return m ? +m[2] + +m[3] + +m[4] + +m[5] : 0; };
-  // un robot à la souris : il arrive sur la prochaine étoile 30 ms avant son temps
-  await pj(`(() => { const c = document.getElementById('gc'); window.__bot = setInterval(() => { const rh = c.__rh.st(), n = rh.notes.find(n => !n.judged); if (!n || c.__rh.now() < n.t - .03) return; const r = c.getBoundingClientRect();
-    c.dispatchEvent(new PointerEvent('pointermove', {clientX: r.left + n.x / 320 * r.width, clientY: r.top + n.y / 240 * r.height, bubbles: true})); }, 16); return 1; })()`);
-  for (let i = 0; i < 80 && judged(await label()) < 3; i++) await sleep(300);
-  await pj(`clearInterval(__bot), 0`);
+  for (let i = 0; i < 80 && judged(await label()) < 3; i++) { await key(i % 2 ? 'f' : 'j'); await sleep(300); }  // le morceau lent commence par une intro sans notes
   await shot('1-partie');
   const l = await label(), m = /: en jeu, score (\d+), combo \d+, parfait (\d+), bien (\d+), ok (\d+), raté (\d+)/.exec(l);
-  if (!m || +m[2] + +m[3] + +m[4] + +m[5] < 3 || +m[2] < 1) throw new Error('la partie devait avancer et des notes être jugées : « ' + l + ' »');
+  if (!m || +m[2] + +m[3] + +m[4] + +m[5] < 3) throw new Error('la partie devait avancer et des notes être jugées : « ' + l + ' »');
+  // la manette : une fausse manette ; A puis la croix frappent le temps
+  await pj(`(() => { window.__pad = {buttons: Array.from({length: 17}, () => ({pressed: false})), axes: [0, 0]}; navigator.getGamepads = () => [window.__pad]; return 0; })()`);
+  const pad = async (b, on) => { await pj(`(__pad.buttons[${b}].pressed = ${on}, 0)`); await sleep(120); };
+  const tap = () => pj(`document.getElementById('gc').__rh.st().tap`);
+  const t0 = await tap(); await pad(0, true); await pad(0, false); const t1 = await tap(); await sleep(150); await pad(14, true); await pad(14, false); const t2 = await tap();
+  if (!(t1 > t0 && t2 > t1)) throw new Error('la manette devait frapper le temps : ' + [t0, t1, t2]);
   await key('p'); await sleep(400);
   if (!/: pause,/.test(await label())) throw new Error('P devait mettre en pause : « ' + await label() + ' »');
   // l'écran de fin et sa courbe de précision (une partie inventée : juste au début, des ratés au milieu)

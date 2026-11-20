@@ -1,16 +1,16 @@
-# Constellation
+# Orbites
 
-Un jeu de rythme à la souris dans le ciel de nuit. Les étoiles s'allument sur les temps de la musique et une comète file de l'une à l'autre, à la bonne vitesse : suis-la et arrive sur chaque étoile au bon moment. Chaque groupe d'étoiles touchées trace une constellation qui reste dans le ciel. Joue les 1200 morceaux du plugin Rythme, ou ta propre musique.
+Un jeu de rythme dans l'espace. Ta planète tourne autour de son étoile sur trois orbites, un tour toutes les deux mesures. Saute d'orbite pile sur le temps pour attraper les étoiles filantes et éviter les comètes. Joue les 1200 morceaux du plugin Rythme, ou ta propre musique.
 
 *English version: [README.en.md](README.en.md)*
 
 ## Comment jouer
 
-- **La souris** : amène le curseur (une petite étoile filante) sur l'étoile dorée, quand son **cercle se referme**. Pas besoin de cliquer.
-- **La comète** part de l'étoile touchée et arrive sur la suivante pile à son temps : la suivre, c'est aller à la bonne vitesse.
-- **Trop tôt compte aussi** : arriver en avance sur une étoile compte la moitié de l'avance (300 ms trop tôt, c'est raté). En retard, c'est l'heure d'arrivée qui compte.
-- Une **grosse étoile** tombe sur un accent de la musique. L'écart entre deux étoiles suit le temps qui les sépare.
-- **Espace** : jouer · **P** : pause · **Plein écran** pendant la partie.
+- **↑ ou J/K** : sauter vers l'orbite extérieure · **↓ ou F/D** : vers l'orbite intérieure. Un **clic** marche aussi : en haut de l'écran vers l'extérieur, en bas vers l'intérieur.
+- Sur chaque note, une **étoile filante** attend sur l'orbite voisine, avec une flèche qui montre le sens du saut ; saute quand son **cercle se referme**.
+- Une **comète** arrive sur ton orbite : rester, ou sauter dans le mauvais sens, c'est la prendre (la note est ratée).
+- Une **traînée dorée** suit l'étoile : garde la touche jusqu'à son bout, sinon le combo casse.
+- **Manette** : la croix haut ou bas, Y/B vers l'extérieur, A/X vers l'intérieur.
 
 ## Précision et points
 
@@ -38,6 +38,6 @@ Tes scores et notes par niveau et tes réglages sont enregistrés par NeoDex, sa
 
 ## Installer
 
-Dans NeoDex : **NeoStore → À découvrir → Constellation → Installer**.
+Dans NeoDex : **NeoStore → À découvrir → Orbites → Installer**.
 
 Développer un plugin : voir le [SDK NeoDex](https://github.com/NDesumeur/neodex-sdk).

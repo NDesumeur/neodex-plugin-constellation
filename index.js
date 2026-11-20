@@ -1,7 +1,7 @@
-// Constellation : Un jeu de rythme à la souris dans le ciel de nuit : une comète file d'étoile en étoile à la vitesse de la musique, suis-la et arrive sur chaque étoile au bon moment. Chaque groupe d'étoiles trace une constellation. Les 1200 morceaux de Rythme, ou ta propre musique.
+// Orbites : Un jeu de rythme dans l'espace : ta planète tourne autour de son étoile sur trois orbites, au rythme de la musique. Saute d'orbite pile sur le temps (↑ ou ↓) pour attraper les étoiles filantes et éviter les comètes. Les 1200 morceaux de Rythme, ou ta propre musique.
 // Jeu NeoDex en pixel art dessiné à la main (police bitmap, cadres et boutons en pixels). Il tourne dans le bac à sable de NeoDex.
 const HTML = `<div class="appWrap wide">
-  <div class="agHead"><span class="label">Constellation</span><span class="hint">Souris : suivre la comète d'étoile en étoile · espace : jouer · P : pause</span></div>
+  <div class="agHead"><span class="label">Orbites</span><span class="hint">↑ ou J/K : extérieur · ↓ ou F/D : intérieur · espace : jouer · P : pause</span></div>
   <div class="gMain"><div class="gameBox"><canvas id="gc" width="320" height="240"></canvas><button class="btn rhFs" id="rhFs">PLEIN ÉCRAN</button></div>
     <div class="gSide">
       <div class="sysCard"><b>RECORDS</b><div class="gStats" id="gStats"></div></div>
@@ -313,8 +313,8 @@ export default async function (ctx) {
   } });
   host.addStyle(CSS);
   view.innerHTML = HTML;
-  pxSkin(view.querySelector('.appWrap'), { title: "CONSTELLATION", T: {"k": "#02040e", "k2": "#060a1e", "fill": "#0c1430", "fillOn": "#121c42", "hl": "#1a2652", "line": "#3a5aa0", "acc": "#9ad8ff", "accL": "#e0f4ff", "accS": "#3a8ac4", "accD": "#0a2a4a", "rivet": "#e0f4ff", "btn": "#1a2652", "btnHi": "#6a8ad8", "btnLo": "#060a1e", "btnHov": "#1e2e62", "btnHovHi": "#8aaaf0", "text": "#eef4ff", "muted": "#a8b8e0", "acc2": "#d8e4ff", "gold": "#9ad8ff", "orange": "#ffa030", "red": "#ff4a5a", "green": "#7ee07a", "green2": "#2f8a3a", "bg": "#03050f", "bgDot": "#0c1430", "bgDot2": "#060a1e", "spark": "#3a5aa0", "spark2": "#d8e4ff", "tile": ["................", "...:............", "................", "..........+.....", "................", "................", ".....:..........", "................", "................", ".............:..", "................", "..+.............", "................", ".........:......", "................", "................"]},
-  emblem: ["............",".a........w.","..k.....kw..","...k...k....","....kak.....","....k.......","...k........","..w.....a...","...k...k....","....k.k.....",".....w......","............"],
+  pxSkin(view.querySelector('.appWrap'), { title: "ORBITES", T: {"k": "#02040e", "k2": "#060a1e", "fill": "#0c1430", "fillOn": "#121c42", "hl": "#1a2652", "line": "#3a5aa0", "acc": "#ffd84a", "accL": "#fff4b0", "accS": "#c49a1a", "accD": "#4a3a06", "rivet": "#fff4b0", "btn": "#1a2652", "btnHi": "#6a8ad8", "btnLo": "#060a1e", "btnHov": "#1e2e62", "btnHovHi": "#8aaaf0", "text": "#eef4ff", "muted": "#a8b8e0", "acc2": "#d8e4ff", "gold": "#ffd84a", "orange": "#ffa030", "red": "#ff4a5a", "green": "#7ee07a", "green2": "#2f8a3a", "bg": "#03050f", "bgDot": "#0c1430", "bgDot2": "#060a1e", "spark": "#3a5aa0", "spark2": "#d8e4ff", "tile": ["................", "...:............", "................", "..........+.....", "................", "................", ".....:..........", "................", "................", ".............:..", "................", "..+.............", "................", ".........:......", "................", "................"]},
+  emblem: ["....kkkk....","..kk....kk..",".k........k.",".k..yyyy..k.","k..yywwyy..k","k..ywwwwy..k","k..ywwwwy..k","k..yywwyy..k",".k..yyyy..b.",".k.......bbb","..kk....kkb.","....kkkk...."],
   icons: [[/^PLEIN/, "full"], [/^IMPORTER/, "folder"], [/^CRÉER/, "plus"], [/^CHANSONS/, "note"], [/^MES MUSIQUES/, "folder"], [/^NOUVELLE/, "play"], [/^RECORDS/, "crown"]] });
   const $ = id => view.querySelector('#' + id) || document.getElementById(id);
   const doc = async n => { try { return await folder.read(n); } catch { return null; } };
@@ -1070,141 +1070,170 @@ function rhOpen() {
   const last = games.rhythmLast || {song: 0, diff: 'normal'}; rhSelect(last.song, last.diff).catch(() => rhSelect(0, 'normal'));
 }
 
-/* ---------- Constellation : des étoiles s'allument sur les temps de la musique. Une comète file de l'étoile touchée à la suivante, à la vitesse
-   de la musique : suis-la à la souris et arrive sur chaque étoile au bon moment (ni en retard, ni trop tôt). Chaque groupe d'étoiles touchées
-   trace une constellation qui reste dans le ciel. ---------- */
-const CN = {R: 12, M: 22, MIN: .25, EARLY: .5};  // R : le rayon d'une étoile ; M : la marge du ciel ; MIN : écart minimum, en temps ; EARLY : arriver trop tôt compte à moitié
-const CN_SHAPES = [[1.1, 1.1, -.9, 1.1], [2.1, -2.1, 2.1], [Math.PI / 2, Math.PI / 2, Math.PI / 2], [.5, .5, .5, .5, .5], [2.5, 2.5, 2.5, 2.5], [-.7, 1.4, -.7, 1.4]];  // les virages d'une figure (radians)
-const CN_NAMES = ['la Lyre', 'le Cygne', 'la Couronne', 'le Serpent', 'la Flèche', 'l\'Ourse', 'le Phare', 'la Harpe', 'le Navire', 'la Plume', 'le Dragon', 'la Fontaine'];
-const RHG = {key: 'constellation', factor: 1.05, color: '#9ad8ff',
-  help: [['Suis la comète à la souris, d\'étoile en étoile', '#d8ecff'], ['Arrive sur l\'étoile quand son cercle se referme', '#e8e0ff'], ['Trop tôt compte aussi : garde le rythme', '#e8e0ff']],
-  // les notes ensemble n'en font qu'une ; trop rapprochées : retirées. Puis le ciel : l'écart suit le temps (comme une map), un groupe par deux mesures
-  // forme une figure (ses virages), qui rebondit sur les bords et évite les étoiles encore visibles
-  chart(base, c, diff) {
-    const beat = (c.step || .125) * 4, b0 = c.beat0 || 0, lv = /^S\d+$/.test(diff) ? +diff.slice(1) : {facile: 2, normal: 4, difficile: 6, expert: 8}[diff] || 4, out = [];
-    for (const n of base) if (!out.length || n.t - out.at(-1).t >= CN.MIN * beat - 1e-6) out.push({t: n.t, acc: n.acc || 0});
-    const R = seeded(Math.round(c.len * 1000) + out.length), sp = 34 + lv * 5, inside = (x, y) => x >= CN.M && x <= W - CN.M && y >= CN.M + 8 && y <= H - CN.M;
-    let x = W / 2, y = H / 2, a = R() * 6.28, grp = -1, bar = -99, k = 0, shape = CN_SHAPES[0], turn = 1;
-    out.forEach((n, i) => {
-      const bb = Math.floor((n.t - b0) / (beat * 2)), gap = i ? n.t - out[i - 1].t : 9;
-      if (bb !== bar && gap >= beat * .45 || k >= 8) { bar = bb; grp++; k = 0; shape = CN_SHAPES[R() * CN_SHAPES.length | 0]; turn = R() < .5 ? 1 : -1; }
-      let d = i ? Math.max(CN.R * 1.6, Math.min(120, gap / beat * sp * (n.acc > .85 ? 1.3 : 1))) : 0;
-      if (k) a += shape[(k - 1) % shape.length] * turn; else a += R() * 2 - 1;
-      let nx = x + Math.cos(a) * d, ny = y + Math.sin(a) * d;
-      for (let t = 0; t < 14; t++) {  // contre les bords : la direction rebondit ; loin des étoiles encore à l'écran
-        const crowd = out.slice(Math.max(0, i - 7), i - 1).some(o => Math.hypot(o.x - nx, o.y - ny) < CN.R * 2.2);  // la précédente n'y compte pas : l'écart avec elle est voulu
-        if (inside(nx, ny) && (!crowd || !d)) break;
-        if (!inside(nx, ny)) { if (nx < CN.M || nx > W - CN.M) a = Math.PI - a; if (ny < CN.M + 8 || ny > H - CN.M) a = -a; } else a += .8;
-        if (t > 8) d = Math.max(CN.R * 1.6, d * .85);
-        nx = x + Math.cos(a) * d; ny = y + Math.sin(a) * d;
-      }
-      Object.assign(n, {x: Math.max(CN.M, Math.min(W - CN.M, nx)), y: Math.max(CN.M + 8, Math.min(H - CN.M, ny)), g: grp, k: k++, len: 0}); x = n.x; y = n.y;
-    });
+/* ---------- Orbites : une planète tourne autour de son étoile, sur trois orbites, au rythme de la musique (un tour en deux mesures).
+   Sur chaque note, une étoile filante attend sur l'orbite voisine et une comète arrive sur la tienne : ↑ (vers l'extérieur) ou ↓ (vers
+   l'intérieur) pile sur le temps pour sauter, attraper l'étoile et éviter la comète. Une traînée dorée : garde la touche jusqu'à son bout. ---------- */
+const OR = {CX: 160, CY: 130, RAD: [36, 62, 88], TURN: 8, MIN: .25};  // le centre, le rayon des trois orbites ; TURN : un tour en 8 temps ; MIN : écart minimum, en temps
+const OR_UP = ['ArrowUp', 'j', 'k', 'i', 'w', 'z'], OR_DOWN = ['ArrowDown', 'f', 'd', 's'];
+const RHG = {key: 'constellation', factor: 1.05, color: '#ffd84a',
+  help: [['↑ ou J/K : orbite extérieure · ↓ ou F/D : orbite intérieure', '#fff4c8'], ['Saute sur le temps : attrape l\'étoile filante, évite la comète', '#e8e0ff'], ['Traînée dorée : garde la touche jusqu\'au bout', '#e8e0ff']],
+  // les notes ensemble n'en font qu'une ; trop rapprochées (ou pendant une traînée) : retirées. Le sens vient de la piste de la note
+  // (graves vers l'intérieur, aigus vers l'extérieur), retourné contre la première ou la dernière orbite
+  chart(base, c) {
+    const beat = (c.step || .125) * 4, out = []; let o = 1;
+    for (const n of base) {
+      const p = out.at(-1); if (p && n.t - (p.t + p.len) < OR.MIN * beat - 1e-6) continue;
+      let dir = (n.lane ?? 0) < 2 ? -1 : 1; if (o + dir < 0 || o + dir > 2) dir = -dir;
+      out.push({t: n.t, from: o, to: o + dir, dir, len: n.len >= beat * .9 ? Math.min(n.len, beat * 4) : 0}); o += dir;
+    }
+    out.forEach((n, i) => { if (n.len && out[i + 1]) n.len = Math.min(n.len, out[i + 1].t - n.t - OR.MIN * beat); if (n.len < beat * .5) n.len = 0; });  // une traînée finit avant la note suivante
     return out;
   },
-  reset() { Object.assign(rh, {judge: null, cx: W / 2, cy: H / 2, trail: [], tap: -99, enter: null, lines: [], seen: 0}); },
-  update() { cnStep(rhNow()); },
-  draw() { cnDraw(); },
+  reset() { Object.assign(rh, {judge: null, tap: -99, tapDir: 0, shake: 0, orb: 1, orbFrom: 1, orbAt: -9, held: new Set(), trail: [], beat: (rh.c?.step || .125) * 4, b0: rh.c?.beat0 || 0}); },
+  update() { orStep(rhNow()); },
+  draw() { orDraw(); },
 };
-function cnStep(now) {
-  const win = RH.WIN.at(-1)[0];
-  {
-    if (rh.mode === 'play') {
-      const n = rh.notes.find(n => !n.judged);
-      if (n) {
-        const inS = Math.hypot(rh.cx - n.x, rh.cy - n.y) <= CN.R;
-        if (!inS) rh.enter = null; else rh.enter ??= now;
-        if (now - n.t > win) { rhMissed(n); cnFx(n, null); rh.enter = null; }
-        else if (inS && now >= n.t - win) {  // sur l'étoile pendant sa fenêtre : jugée à l'arrivée si elle est en retard, sinon quand son temps vient
-          const dt = rh.enter > n.t ? rh.enter - n.t : (rh.enter - n.t) * CN.EARLY;
-          if (now >= n.t || rh.enter > n.t - 1e-9) { cnJudge(n, rhHit(n, dt)); rh.enter = null; }
-        }
-      }
+const orAng = t => -Math.PI / 2 + 2 * Math.PI * (t - rh.b0) / (OR.TURN * rh.beat);  // l'angle de la planète au temps t
+const orPre = () => Math.min(1.7, OR.TURN * rh.beat * .62);  // le temps où l'on voit venir une note (jamais un tour entier : elle passerait sur la planète)
+function orMove(to, now) { if (to === rh.orb) return; rh.orbFrom = orRad(now); rh.orb = to; rh.orbAt = now; }
+function orRad(now) { const k = Math.min(1, (now - rh.orbAt) / .09), e = 1 - (1 - k) ** 3; return rh.orbFrom + (OR.RAD[rh.orb] - rh.orbFrom) * e; }  // le saut d'orbite en 90 ms
+function orFx(n, w, now) {
+  const a = orAng(n.t), r = OR.RAD[n.to], x = OR.CX + Math.cos(a) * r, y = OR.CY + Math.sin(a) * r;
+  rh.judge = {text: w ? w[1] : n.wrong ? 'COMÈTE' : 'RATÉ', col: w ? w[3] : '#ff6a5a', t: 26};
+  orMove(n.to, now);  // touché ou pas, la planète finit sur l'orbite de la note (la comète l'y pousse)
+  if (!w) { rh.shake = 10; for (let i = 0; i < 14; i++) { const b = Math.random() * 6.28, v = .5 + Math.random() * 2; rh.sparks.push({x, y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, life: 22, col: i % 2 ? '#ff6a5a' : '#9ad8ff'}); } return; }
+  for (let i = 0; i < 16; i++) { const b = Math.random() * 6.28, v = .6 + Math.random() * 1.8; rh.sparks.push({x, y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, life: 24, col: i % 3 ? '#ffd84a' : '#ffffff'}); }
+  if (n.len) n.holding = n.dir;
+}
+function orStep(now) {
+  const late = RH.WIN.at(-1)[0];
+  for (const n of rh.notes) {
+    if (n.t - now > .3) break;
+    if (!n.judged && now - n.t > late) { rhMissed(n); orFx(n, null, now); }
+    if (n.holding) {  // la traînée : la touche gardée jusqu'au bout
+      if (now >= n.t + n.len) { n.holding = 0; n.done = true; rh.score += 100; const a = orAng(now), r = OR.RAD[n.to]; for (let i = 0; i < 10; i++) { const b = Math.random() * 6.28; rh.sparks.push({x: OR.CX + Math.cos(a) * r, y: OR.CY + Math.sin(a) * r, vx: Math.cos(b) * 1.4, vy: Math.sin(b) * 1.4, life: 20, col: '#fff4b0'}); } }
+      else if (!rh.held.has(n.holding) && now < n.t + n.len - .1) { n.holding = 0; n.broken = true; rh.combo = 0; rh.judge = {text: 'LÂCHÉ', col: '#ff6a5a', t: 22}; }
     }
-    rh.trail.push([rh.cx, rh.cy]); if (rh.trail.length > 10) rh.trail.shift();
-    for (const s of rh.sparks) { s.x += s.vx; s.y += s.vy; s.vx *= .93; s.vy *= .93; s.life--; } rh.sparks = rh.sparks.filter(s => s.life > 0);
-    if (rh.judge && --rh.judge.t <= 0) rh.judge = null;
-    rhCheckEnd(now);
   }
+  for (const s of rh.sparks) { s.x += s.vx; s.y += s.vy; s.vx *= .92; s.vy *= .92; s.life--; } rh.sparks = rh.sparks.filter(s => s.life > 0);
+  if (rh.shake) rh.shake--;
+  if (rh.judge && --rh.judge.t <= 0) rh.judge = null;
+  rhCheckEnd(now);
 }
-function cnJudge(n, w) {
-  cnFx(n, w); if (!w) return;
-  rh.tap = rh.tick; rhPlayKit(3, .3);
-  const p = rh.notes[rh.notes.indexOf(n) - 1]; if (p && p.g === n.g && !p.missed) rh.lines.push([p, n]);  // le trait de la constellation
+function orHit(dir, now = rhNow()) {
+  rh.tap = rh.tick; rh.tapDir = dir; rhPlayKit(dir > 0 ? 2 : 1, .35);
+  let near = null;
+  for (const n of rh.notes) { if (n.judged) continue; if (n.t - now > .3) break; if (Math.abs(n.t - now) <= RH.WIN.at(-1)[0] && (!near || Math.abs(n.t - now) < Math.abs(near.t - now))) near = n; }
+  if (!near) return;  // pas de note : la planète ne quitte pas son orbite
+  if (near.dir !== dir) { rhMissed(near); near.wrong = true; orFx(near, null, now); return; }  // le mauvais sens : la comète
+  const w = rhHit(near, now - near.t); near.ok = !!w; orFx(near, w, now);
 }
-function cnFx(n, w) {
-  rh.judge = {text: w ? w[1] : 'RATÉ', col: w ? w[3] : '#ff7a8a', t: 24, x: n.x, y: n.y};
-  if (w) for (let i = 0; i < 12; i++) { const a = Math.random() * Math.PI * 2, v = .5 + Math.random() * 1.8; rh.sparks.push({x: n.x, y: n.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 22, col: i % 3 ? '#ffffff' : w[3]}); }
-}
-const CN_BG = cnv(W, H, b => {
-  for (let y = 0; y < H; y++) { const f = y / H; px(b, f < .3 ? '#04061a' : f < .6 ? (y % 2 ? '#060a22' : '#04061a') : f < .85 ? '#080e2a' : (y % 2 ? '#0c1434' : '#080e2a'), 0, y, W, 1); }
-  const r = seeded(91); for (let i = 0; i < 160; i++) { const v = r(); px(b, v > .95 ? '#ffffff' : v > .8 ? '#8a9ad8' : '#3a4878', r() * W, r() * H, 1, 1); }
-  for (let x = 0; x < W; x++) { const h = 6 + Math.sin(x / 23) * 3 + Math.sin(x / 7) * 1.5; px(b, '#02030c', x, H - h, 1, h); }  // l'horizon
+// le décor : un ciel profond, deux nébuleuses tramées, des étoiles de trois tailles
+const OR_BG = cnv(W, H, b => {
+  px(b, '#03040e', 0, 0, W, H); const r = seeded(23);
+  for (const [cx, cy, R, c1, c2] of [[60, 50, 90, '#0e1438', '#16103a'], [270, 200, 110, '#1a0c2c', '#0c1a34']])
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const d = Math.hypot(x - cx, (y - cy) * 1.3) / R; if (d < 1 && (x + y) % 2 === 0 && r() > d * .9) px(b, d < .55 ? c2 : c1, x, y); }
+  for (let i = 0; i < 160; i++) px(b, r() < .2 ? '#8a9ac8' : r() < .5 ? '#3a4470' : '#222a4a', Math.floor(r() * W), Math.floor(r() * H));
+  for (let i = 0; i < 10; i++) { const x = Math.floor(r() * W), y = Math.floor(r() * H); px(b, '#c8d8ff', x, y); px(b, '#4a5a8a', x - 1, y); px(b, '#4a5a8a', x + 1, y); px(b, '#4a5a8a', x, y - 1); px(b, '#4a5a8a', x, y + 1); }
 });
-function cnStar(x, y, col, s = 1) { px(g, col, x - s, y - 3 * s, 2 * s, 6 * s); px(g, col, x - 3 * s, y - s, 6 * s, 2 * s); px(g, '#ffffff', x - s, y - s, 2 * s, 2 * s); }
-function cnDraw() {
-  const now = rhNow(), pre = Math.max(.7, 1.5 - (rhStarsLv() * .07));
-  g.drawImage(CN_BG, 0, 0);
-  // les constellations finies restent dans le ciel, de plus en plus pâles
-  const last = rh.lines.at(-1)?.[1].g ?? -1;
-  for (const [p, n] of rh.lines) { const age = last - n.g; if (age > 6) continue; g.globalAlpha = age ? Math.max(.08, .35 - age * .05) : .9; cnLine(p.x, p.y, n.x, n.y, age ? '#6a8ad8' : '#9ad8ff'); }
-  g.globalAlpha = 1;
-  // les étoiles à venir : le cercle qui se referme donne le moment ; la comète file de l'étoile précédente à la suivante, à la vitesse de la musique
-  const vis = rh.notes.filter(n => !n.judged && n.t - now < pre).slice(0, 8);
-  for (let i = vis.length - 1; i >= 0; i--) {
-    const n = vis[i], f = Math.max(0, (n.t - now) / pre), j = rh.notes.indexOf(n), p = rh.notes[j - 1];
-    if (p && i === 0 && p.g === n.g) { g.globalAlpha = .25; cnLine(p.x, p.y, n.x, n.y, '#9ad8ff'); g.globalAlpha = 1; }
-    g.globalAlpha = Math.min(1, (1 - f) * 2.5);
-    const R = CN.R + f * 30; for (let k = 0; k < 32; k++) px(g, i ? '#5a7ab8' : '#9ad8ff', n.x + Math.cos(k / 32 * 6.283) * R, n.y + Math.sin(k / 32 * 6.283) * R, 1, 1);
-    cnStar(n.x, n.y, i ? '#8aa8e8' : '#ffe88a', n.acc > .85 ? 2 : 1);
-    if (i === 0 && rh.mode === 'play') pxFont(g, String(n.k + 1), n.x + 9, n.y - 7, '#d8ecff', 6);
-    g.globalAlpha = 1;
-  }
-  const nx = vis[0], pv = nx && rh.notes[rh.notes.indexOf(nx) - 1];
-  if (nx && pv && rh.mode === 'play' && now > pv.t) { const f = Math.min(1, (now - pv.t) / Math.max(.01, nx.t - pv.t)), x = pv.x + (nx.x - pv.x) * f, y = pv.y + (nx.y - pv.y) * f; for (let k = 1; k < 6; k++) { g.globalAlpha = .5 - k * .08; px(g, '#ffe88a', x - (nx.x - pv.x) * k * .03 - 1, y - (nx.y - pv.y) * k * .03 - 1, 2, 2); } g.globalAlpha = 1; px(g, '#fff4c8', x - 2, y - 2, 4, 4); }
-  for (const s of rh.sparks) { g.globalAlpha = s.life / 22; px(g, s.col, s.x, s.y, 1, 1); g.globalAlpha = 1; }
-  if (rh.judge && rh.mode === 'play') pxFont(g, rh.judge.text, rh.judge.x, rh.judge.y - 14, rh.judge.col, 6, 'center');
-  // le curseur : une petite étoile filante
-  if (rh.mode === 'play') { rh.trail.forEach(([x, y], k) => { g.globalAlpha = k / 20; px(g, '#d8ecff', x - 1, y - 1, 2, 2); }); g.globalAlpha = 1; px(g, '#ffffff', rh.cx - 4, rh.cy, 9, 1); px(g, '#ffffff', rh.cx, rh.cy - 4, 1, 9); px(g, '#9ad8ff', rh.cx - 1, rh.cy - 1, 3, 3); }
-  if (rh.mode === 'over' && rh.tick - rh.overAt > 20) pxFont(g, 'Ta constellation : ' + CN_NAMES[(rh.info.key.length + Math.round(rh.c.len)) % CN_NAMES.length], W / 2, 34, '#9ad8ff', 7, 'center');
-  if (rh.mode !== 'ready' && rh.mode !== 'load') {
-    rhProgress(now, '#9ad8ff'); pxFont(g, String(rh.score).padStart(7, '0'), 4, 14, '#ffffff', 7);
-    if (rh.combo > 4) pxFont(g, rh.combo + ' combo', W - 4, 14, '#9ad8ff', 7, 'right');
-    pxFont(g, rhStarTxt(rh.stars), W / 2, H - 6, '#6a7aa8', 6, 'center');
-  }
-  if (rh.mode === 'play' && now < 0) pxFont(g, String(Math.ceil(-now)), W / 2, 60, '#9ad8ff', 16, 'center');
-  rhScreens(60);
-  if (rh.tick % 15 === 0) cv.setAttribute('aria-label', 'Constellation, ' + (rh.info?.name || '') + ' : ' + ({ready: 'prêt', load: 'chargement', play: 'en jeu', pause: 'pause', over: 'fini'}[rh.mode] || rh.mode) + ', score ' + rh.score + ', combo ' + rh.combo + ', ' +
-    Object.entries(rh.counts).map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ', ' + rh.lines.length + ' traits tracés.');
+const OR_TWINKLE = (() => { const r = seeded(91); return Array.from({length: 14}, () => [Math.floor(r() * W), Math.floor(r() * H), r() * 6.28]); })();
+const OR_PLANET = cnv(15, 15, b => {  // la planète, éclairée d'un côté (tournée vers l'étoile au dessin), avec un anneau
+  for (let y = 0; y < 15; y++) for (let x = 0; x < 15; x++) { const dx = x - 7, dy = y - 7, d = Math.hypot(dx, dy); if (d > 5.5) continue; const l = (-dx - dy) / 7.8 + .25;
+    px(b, d > 4.8 ? '#0a1a2a' : l > .7 ? '#a8f0ff' : l > .25 ? '#4ac8f0' : l > -.25 ? '#2a7ab0' : '#16406a', x, y); }
+  for (let x = 0; x < 15; x++) { const y = Math.round(7 + (x - 7) * .35); if (Math.abs(x - 7) > 3) px(b, '#e8d8a8', x, y); }
+});
+function orStar(x, y, s, rot, col) {  // une étoile filante : quatre branches qui tournent doucement, un cœur blanc
+  for (let k = 0; k < 4; k++) { const a = rot + k * Math.PI / 2; for (let j = 1; j <= s; j++) px(g, j > s - 2 ? prShade(col, .7) : col, x + Math.cos(a) * j - .5, y + Math.sin(a) * j - .5, 1, 1); }
+  px(g, col, x - 1, y - 1, 3, 3); px(g, '#ffffff', x, y, 1, 1);
 }
-const rhStarsLv = () => Math.max(1, Math.min(10, rh.stars || 4));
-function cnLine(x1, y1, x2, y2, col) { const n = Math.max(1, Math.hypot(x2 - x1, y2 - y1) / 2 | 0); for (let k = 0; k <= n; k++) px(g, col, x1 + (x2 - x1) * k / n, y1 + (y2 - y1) * k / n, 1, 1); }
-cv.addEventListener('pointermove', e => { if (!rh) return; const [x, y] = cpos(e); rh.cx = Math.max(0, Math.min(W, x)); rh.cy = Math.max(0, Math.min(H, y)); });
-cv.onpointerdown = e => { e.preventDefault(); if (rh && rh.mode !== 'play') rhPress(); };
+const prShade = (c, f) => '#' + [1, 3, 5].map(i => Math.max(0, Math.min(255, Math.round(parseInt(c.slice(i, i + 2), 16) * f))).toString(16).padStart(2, '0')).join('');
+function orRing(cx, cy, r, col, step = 1) { const n = Math.max(12, Math.round(r * 6.28 / step)); for (let i = 0; i < n; i++) { const a = i / n * 6.28; px(g, col, cx + Math.cos(a) * r - .5, cy + Math.sin(a) * r - .5, 1, 1); } }
+function orDraw() {
+  const live = rh.mode === 'play' || rh.mode === 'pause', now = live ? rhNow() : 0, sh = rh.shake ? (rh.shake % 2 ? 2 : -2) : 0, CX = OR.CX + sh, CY = OR.CY, pre = orPre();
+  g.drawImage(OR_BG, 0, 0);
+  for (const [x, y, p] of OR_TWINKLE) { const v = Math.sin(rh.tick / 14 + p); if (v > .3) { px(g, v > .8 ? '#ffffff' : '#8a9ac8', x, y); if (v > .8) { px(g, '#4a5a8a', x - 1, y); px(g, '#4a5a8a', x + 1, y); } } }
+  // l'étoile au centre : son halo bat sur les temps de la musique
+  const ph = live ? ((now - rh.b0) / rh.beat % 1 + 1) % 1 : .5, pulse = Math.max(0, 1 - ph * 4);
+  for (let y = -26; y <= 26; y++) for (let x = -26; x <= 26; x++) { const d = Math.hypot(x, y), R = 13 + pulse * 3;
+    if (d <= R) px(g, d < R * .45 ? '#fff8d8' : d < R * .75 ? '#ffe070' : d < R - 1 ? '#ffb040' : '#c8641a', CX + x, CY + y);
+    else if (d < R + 9 && (x + y) % 2 === 0 && (x * 7 + y * 3) % 5 < 5 - (d - R) / 2) px(g, d < R + 4 ? '#6a3a14' : '#2a1a10', CX + x, CY + y); }
+  for (let k = 0; k < 8; k++) { const a = rh.tick / 90 + k * Math.PI / 4; for (let j = 18 + pulse * 3; j < 22 + pulse * 5; j++) px(g, '#ffd84a', CX + Math.cos(a) * j, CY + Math.sin(a) * j, 1, 1); }
+  // les trois orbites en pointillé, celle de la planète plus claire
+  OR.RAD.forEach((r, i) => orRing(CX, CY, r, i === rh.orb ? '#5a7ad0' : '#222c5a', 4));
+  if (live) {
+    // les notes à venir : la traînée dorée, le saut à faire (pointillés entre les deux orbites), l'étoile filante et son cercle qui se referme, la comète
+    for (let i = rh.notes.length - 1; i >= 0; i--) {
+      const n = rh.notes[i]; if (n.t - now > pre || (n.t + n.len < now - .3)) continue;
+      const a = orAng(n.t), rt = OR.RAD[n.to], rf = OR.RAD[n.from], ca = Math.cos(a), sa = Math.sin(a);
+      if (n.len && !n.broken) for (let t = Math.max(n.t, now); t < n.t + n.len; t += rh.beat / 16) { const b = orAng(t); px(g, (Math.round(t * 40) % 3) ? '#ffd84a' : '#fff4b0', CX + Math.cos(b) * rt - 1, CY + Math.sin(b) * rt - 1, 2, 2); }
+      if (n.judged) continue;
+      const f = Math.max(0, Math.min(1, (n.t - now) / pre));
+      for (let r = Math.min(rf, rt) + 3; r < Math.max(rf, rt) - 3; r += 3) px(g, '#c8b8ff', CX + ca * r, CY + sa * r, 1, 1);
+      const ax = CX + ca * (rf + rt) / 2, ay = CY + sa * (rf + rt) / 2, d = n.dir;  // la flèche du saut, vers l'extérieur ou l'intérieur
+      for (let k = 0; k < 4; k++) for (let j = -k; j <= k; j++) px(g, '#fff4c8', ax + ca * (2 - k) * d * 1.5 - sa * j, ay + sa * (2 - k) * d * 1.5 + ca * j, 1, 1);
+      const cb = a + .14, cx = CX + Math.cos(cb) * rf, cy = CY + Math.sin(cb) * rf;  // la comète, sur l'orbite que tu quittes, sa queue tournée vers l'extérieur
+      for (let k = 1; k < 9; k++) { g.globalAlpha = 1 - k / 9; px(g, k < 3 ? '#c8f0ff' : '#5a9ad8', cx + Math.cos(cb) * k * 1.6 - 1, cy + Math.sin(cb) * k * 1.6 - 1, 2, 2); } g.globalAlpha = 1;
+      px(g, '#2a6aa8', cx - 2, cy - 2, 5, 5); px(g, '#e8faff', cx - 1, cy - 1, 3, 3);
+      const sx = CX + ca * rt, sy = CY + sa * rt; orStar(sx, sy, 5, rh.tick / 20, '#ffd84a');
+      orRing(sx, sy, 6 + f * 14, f < .15 ? '#ffffff' : '#ffd84a', 2);
+    }
+    // la planète, sa traînée sur l'orbite
+    const pa = orAng(now), pr = orRad(now), px0 = CX + Math.cos(pa) * pr, py0 = CY + Math.sin(pa) * pr;
+    rh.trail.push([px0, py0]); if (rh.trail.length > 10) rh.trail.shift();
+    rh.trail.forEach(([x, y], i) => { g.globalAlpha = i / 20; px(g, '#4ac8f0', x - 1, y - 1, 3, 3); }); g.globalAlpha = 1;
+    g.save(); g.translate(Math.round(px0), Math.round(py0)); g.rotate(Math.round((pa + Math.PI * .75) / (Math.PI / 4)) * Math.PI / 4); g.drawImage(OR_PLANET, -7, -7); g.restore();  // la face éclairée tournée vers l'étoile
+    if (rh.tick - rh.tap < 6) for (let k = 0; k < 5; k++) px(g, '#fff4c8', px0 + Math.cos(pa) * (9 + k) * rh.tapDir - .5, py0 + Math.sin(pa) * (9 + k) * rh.tapDir - .5, 1, 1);  // le sens tapé
+    if (rh.judge && rh.mode === 'play') pxFont(g, rh.judge.text, px0, py0 - 14, rh.judge.col, 6, 'center');
+  }
+  for (const s of rh.sparks) { g.globalAlpha = s.life / 24; px(g, s.col, s.x + sh, s.y, 2, 2); g.globalAlpha = 1; }
+  if (rh.mode !== 'ready' && rh.mode !== 'load') {
+    rhProgress(now, '#ffd84a'); pxFont(g, String(rh.score).padStart(7, '0'), 4, 14, '#ffffff', 7);
+    if (rh.combo > 4) pxFont(g, rh.combo + ' combo', W - 4, 14, '#ffd84a', 7, 'right');
+    pxFont(g, rhStarTxt(rh.stars), W - 4, H - 6, '#8a9ac8', 6, 'right');
+  }
+  if (rh.mode === 'play' && now < 0) pxFont(g, String(Math.ceil(-now)), W / 2, 60, '#ffd84a', 16, 'center');
+  rhScreens(60);
+  if (rh.tick % 15 === 0) cv.setAttribute('aria-label', 'Orbites, ' + (rh.info?.name || '') + ' : ' + ({ready: 'prêt', load: 'chargement', play: 'en jeu', pause: 'pause', over: 'fini'}[rh.mode] || rh.mode) + ', score ' + rh.score + ', combo ' + rh.combo + ', ' +
+    Object.entries(rh.counts).map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ', orbite ' + (rh.orb + 1) + '.');
+}
+cv.onpointerdown = e => { e.preventDefault(); if (!rh) return; if (rh.mode !== 'play') { rhPress(); return; } const [, y] = cpos(e); orHit(y < H / 2 ? 1 : -1); };  // un clic : en haut vers l'extérieur, en bas vers l'intérieur
 document.addEventListener('keydown', e => {
   if (!keyOk(e) || !rh || e.ctrlKey || e.altKey || e.metaKey) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (k === 'p' || k === 'Escape') { rhPause(); return; }
-  if (rh.mode !== 'play' && (k === ' ' || k === 'Enter')) { e.preventDefault(); if (!e.repeat) rhPress(); }
+  if (rh.mode === 'play') { const d = OR_UP.includes(k) ? 1 : OR_DOWN.includes(k) ? -1 : 0; if (d) { e.preventDefault(); rh.held.add(d); if (!e.repeat) orHit(d); } return; }
+  if (k === ' ' || k === 'Enter') { e.preventDefault(); if (!e.repeat) rhPress(); }
 });
-document.addEventListener('keyup', e => { if (e.key === ' ' && keyOk(e)) e.preventDefault(); });
-cv.__rh = {st: () => rh, now: () => rhNow(), finish: hist => { rh.hist = hist; rh.mode = 'play'; rhCheckEnd(1e9); }};  // pour le test « local »
-{  // vérification : les étoiles dans le ciel, séparées d'au moins un quart de temps et jamais empilées sur une voisine ; l'écart suit le temps ;
-   // le jugement : à l'heure, en retard, trop tôt (compte à moitié), raté
+document.addEventListener('keyup', e => { if (!rh) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, d = OR_UP.includes(k) ? 1 : OR_DOWN.includes(k) ? -1 : 0;
+  if (d) rh.held?.delete(d); if (e.key === ' ' && keyOk(e)) e.preventDefault(); });
+cv.addEventListener('pointerup', () => rh?.held?.clear());
+cv.__rh = {st: () => rh, finish: hist => { rh.hist = hist; rh.mode = 'play'; rhCheckEnd(1e9); }};  // pour le test « local »
+{  // la manette : la croix haut / bas, Y et B vers l'extérieur, A et X vers l'intérieur (la croix gauche aussi), Start lance, Select met en pause
+  const KEY = {12: 'k', 13: 'f', 14: 'f', 15: 'k', 3: 'k', 1: 'k', 0: 'f', 2: 'f', 9: ' ', 8: 'p'}, held = new Set();
+  const send = (k, type) => document.dispatchEvent(new KeyboardEvent(type, {key: k, bubbles: true}));
+  const loop = () => {
+    requestAnimationFrame(loop); if (!view.classList.contains('on') || !navigator.getGamepads) return;
+    const p = [...navigator.getGamepads()].find(Boolean); if (!p) return;
+    const down = new Set();
+    for (const [i, k] of Object.entries(KEY)) if (p.buttons[i]?.pressed) down.add(k);
+    if (rh?.mode !== 'play' && p.buttons[0]?.pressed) down.add(' ');  // hors partie, A lance aussi le morceau
+    for (const k of down) if (!held.has(k)) { held.add(k); send(k, 'keydown'); }
+    for (const k of [...held]) if (!down.has(k)) { held.delete(k); send(k, 'keyup'); }
+  };
+  requestAnimationFrame(loop);
+}
+{  // vérification : les sauts restent sur les trois orbites, séparés d'un quart de temps, chaque traînée finie avant la note suivante ;
+   // le jugement (à l'heure, en retard, mauvais sens = comète, raté) et la planète qui finit toujours sur l'orbite de la note ; la traînée lâchée
   const c = rhCompose(RH_SONGS[3]), ch = Object.keys(RH_DIFFS).map(d => RHG.chart(rhChart(c, d), c, d)), bad = [], beat = 60 / RH_SONGS[3].bpm;
-  if (ch.some(x => x.length < 20 || x.some((n, i) => n.x < CN.M || n.x > W - CN.M || n.y < CN.M || n.y > H - CN.M || i && (n.t - x[i - 1].t < CN.MIN * beat - 1e-3 || Math.hypot(n.x - x[i - 1].x, n.y - x[i - 1].y) < CN.R)))) bad.push('ciel');
-  if (!(rhStars(ch[0], c.len, 1) < rhStars(ch[3], c.len, 1))) bad.push('étoiles');
-  const keep = rh, at = (n, x, y, t) => { rh.cx = x; rh.cy = y; rh.tick++; cnStep(t); };
-  const notes = [{t: 1, x: 50, y: 50}, {t: 2, x: 150, y: 50}, {t: 3, x: 150, y: 150}, {t: 4, x: 50, y: 150}].map((n, k) => ({...n, g: 0, k, judged: false}));
-  rh = {tick: 0, mode: 'play', score: 0, combo: 0, maxCombo: 0, counts: {PARFAIT: 0, BIEN: 0, OK: 0, 'RATÉ': 0}, dts: [], sparks: [], notes, c: {len: 99}, info: {key: 'x'}, enter: null, lines: [], trail: []};
-  {
-    at(0, 50, 50, .99); at(0, 50, 50, 1.0);  // posé un peu avant, jugé à son temps : parfait
-    at(0, 100, 50, 1.5); at(0, 150, 50, 2.08);  // arrivé 80 ms en retard : bien
-    at(0, 150, 150, 2.7); at(0, 150, 150, 3.0);  // arrivé 300 ms trop tôt : compte à moitié (150 ms), raté
-    at(0, 50, 150, 4.5);  // jamais arrivé : raté
-  }
-  if (rh.counts.PARFAIT !== 1 || rh.counts.BIEN !== 1 || rh.counts['RATÉ'] !== 2 || rh.lines.length !== 1) bad.push('jugement ' + JSON.stringify(rh.counts) + ' ' + rh.lines.length);
+  if (ch.some(x => x.length < 20 || x.some((n, i) => n.to < 0 || n.to > 2 || n.to - n.from !== n.dir || (i && (n.from !== x[i - 1].to || n.t - x[i - 1].t - x[i - 1].len < OR.MIN * beat - 1e-3))))) bad.push('sauts');
+  if (!ch[3].some(n => n.len) || !(rhStars(ch[0], c.len, 1) < rhStars(ch[3], c.len, 1))) bad.push('traînées ou étoiles');
+  const keep = rh, notes = RHG.chart([0, 1, 2, 3, 4].map(t => ({t, lane: [3, 3, 0, 3, 0][t], len: t === 4 ? 2 : 0})), {step: .25}).map(n => ({...n, judged: false}));
+  rh = {tick: 0, mode: 'play', score: 0, combo: 0, maxCombo: 0, counts: {PARFAIT: 0, BIEN: 0, OK: 0, 'RATÉ': 0}, dts: [], sparks: [], notes, c: {step: .25, len: 9}}; RHG.reset();
+  orHit(1, .01); orHit(1, 1.08); orHit(-1, 2); orStep(3.5);  // dehors à l'heure, dehors au lieu de dedans (la comète), dedans à l'heure, puis une note pas jouée
+  const dirs = notes.map(n => n.dir).join(',');
+  rh.held.add(-1); orHit(-1, 4.02); orStep(4.5); rh.held.delete(-1); orStep(5);  // la traînée lâchée à mi-chemin
+  if (dirs !== '1,-1,-1,1,-1' || rh.counts.PARFAIT !== 3 || rh.counts['RATÉ'] !== 2 || !notes[1].wrong || rh.orb !== notes[4].to || !notes[4].broken) bad.push('jugement ' + dirs + ' ' + JSON.stringify(rh.counts) + ' orbite ' + rh.orb);
   rh = keep;
-  console.assert(!bad.length, 'constellation', bad);
+  console.assert(!bad.length, 'orbites', bad);
 }
 ctx.onOpen(() => rhOpen());
 }

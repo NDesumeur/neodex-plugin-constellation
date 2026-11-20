@@ -1,16 +1,16 @@
-# Constellation
+# Orbites
 
-A mouse rhythm game in the night sky. Stars light up on the beats of the music and a comet flies from one to the next, at the right speed: follow it and reach every star at the right moment. Every group of stars you touch draws a constellation that stays in the sky. Play the 1200 tracks from the Rythme plugin, or your own music.
+A rhythm game in space. Your planet circles its star on three orbits, one lap every two bars. Jump orbits right on the beat to catch shooting stars and dodge comets. Play the 1200 tracks from the Rythme plugin, or your own music.
 
 *Version française : [README.md](README.md)*
 
 ## How to play
 
-- **The mouse**: bring the cursor (a small shooting star) onto the golden star when its **circle closes**. No need to click.
-- **The comet** leaves the star you touched and reaches the next one right on time: following it means moving at the right speed.
-- **Too early counts too**: arriving early on a star counts half of how early you were (300 ms early is a miss). When late, your arrival time counts.
-- A **big star** falls on an accent of the music. The distance between two stars follows the time between them.
-- **Space**: play · **P**: pause · **Full screen** during the game.
+- **↑ or J/K**: jump to the outer orbit · **↓ or F/D**: to the inner orbit. A **click** works too: top of the screen for outwards, bottom for inwards.
+- On every note, a **shooting star** waits on the next orbit, with an arrow showing which way to jump; jump when its **circle closes**.
+- A **comet** comes along your orbit: staying, or jumping the wrong way, means hitting it (the note is missed).
+- A **golden trail** follows the star: hold the key until its end, or the combo breaks.
+- **Gamepad**: d-pad up or down, Y/B outwards, A/X inwards.
 
 ## Accuracy and points
 
@@ -38,6 +38,6 @@ Your scores and grades per level and your settings are stored by NeoDex, backed 
 
 ## Install
 
-In NeoDex: **NeoStore → Discover → Constellation → Install**.
+In NeoDex: **NeoStore → Discover → Orbites → Install**.
 
 Building a plugin: see the [NeoDex SDK](https://github.com/NDesumeur/neodex-sdk).
