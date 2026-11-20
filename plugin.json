@@ -1,9 +1,9 @@
 {
   "id": "neodex.constellation",
   "name": "Orbites",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "NDesumeur",
-  "description": "Jeu de rythme dans l'espace : une planète tourne autour de son étoile, sur trois orbites, un tour toutes les deux mesures. Sur chaque note, une étoile filante attend sur l'orbite voisine et une comète arrive sur la tienne : saute pile sur le temps, vers l'extérieur (↑ ou J/K) ou l'intérieur (↓ ou F/D), pour l'attraper. Le mauvais sens, c'est la comète. Une traînée dorée : garde la touche jusqu'à son bout. Les 1200 morceaux de Rythme notés de 1 à 10 étoiles, ou des niveaux créés depuis ta musique ; combo, note de S à D. Se joue au clavier ou à la manette.",
+  "description": "Jeu de rythme dans l'espace : une planète tourne autour de son étoile, sur trois orbites, un tour toutes les deux mesures. Sur chaque note, une étoile filante attend sur l'orbite voisine et une comète arrive sur la tienne : saute pile sur le temps, vers l'extérieur (↑ ou J/K) ou l'intérieur (↓ ou F/D), pour l'attraper. Le mauvais sens, c'est la comète. Une traînée dorée : garde la touche jusqu'à son bout. Les 1200 morceaux de Rythme notés de 1 à 10 étoiles, ou des niveaux créés depuis ta musique ; combo, note de S à D. Se joue au clavier ou à la manette. Touches au choix dans les options.",
   "icon": "icon.png",
   "entry": "index.js",
   "view": "constellation",

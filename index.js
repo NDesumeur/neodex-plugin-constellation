@@ -1,7 +1,7 @@
 // Orbites : Un jeu de rythme dans l'espace : ta planète tourne autour de son étoile sur trois orbites, au rythme de la musique. Saute d'orbite pile sur le temps (↑ ou ↓) pour attraper les étoiles filantes et éviter les comètes. Les 1200 morceaux de Rythme, ou ta propre musique.
 // Jeu NeoDex en pixel art dessiné à la main (police bitmap, cadres et boutons en pixels). Il tourne dans le bac à sable de NeoDex.
 const HTML = `<div class="appWrap wide">
-  <div class="agHead"><span class="label">Orbites</span><span class="hint">↑ ou J/K : extérieur · ↓ ou F/D : intérieur · espace : jouer · P : pause</span></div>
+  <div class="agHead"><span class="label">Orbites</span><span class="hint">↑ <span class="kbA"></span> : extérieur · ↓ <span class="kbB"></span> : intérieur · espace : jouer · P : pause</span></div>
   <div class="gMain"><div class="gameBox"><canvas id="gc" width="320" height="240"></canvas><button class="btn rhFs" id="rhFs">PLEIN ÉCRAN</button></div>
     <div class="gSide">
       <div class="sysCard"><b>RECORDS</b><div class="gStats" id="gStats"></div></div>
@@ -9,8 +9,8 @@ const HTML = `<div class="appWrap wide">
       <div class="row"><button class="btn" id="rhTabSongs">CHANSONS</button><button class="btn" id="rhTabMine">MES MUSIQUES</button></div>
       <div class="sysCard rhImport" id="rhImport" style="display:none"><div class="row"><button class="btn main" id="rhFileBtn">IMPORTER UN FICHIER AUDIO</button><input type="file" id="rhFile" accept="audio/*,.mp3,.m4a,.ogg,.opus,.wav,.flac,.webm" hidden></div><div class="row"><select class="f" id="rhMuList"></select><button class="btn" id="rhMuBtn">CRÉER LE NIVEAU</button></div><div class="row"><label>Difficulté <select class="f" id="rhStars"><option value="1">1 ★</option><option value="2">2 ★</option><option value="3" selected>3 ★</option><option value="4">4 ★</option><option value="5">5 ★</option><option value="6">6 ★</option><option value="7">7 ★</option><option value="8">8 ★</option><option value="9">9 ★</option><option value="10">10 ★</option></select></label></div><span class="hint" id="rhImpMsg">Un fichier ou une musique de NeoMusic : le jeu trouve son tempo et ses temps forts et en fait un niveau.</span></div>
       <div id="rhSongs"></div>
-      <div class="sysCard rhOpts"><label>Volume <input type="range" id="rhVol" min="0" max="100" value="70"></label><label>Son des clics <select class="f gSel" id="rhClick"><option value="0" selected>Doux</option><option value="1">Clap</option><option value="2">Bois</option><option value="3">Grosse caisse</option><option value="4">Cristal</option><option value="5">Pop</option><option value="6">Charleston</option><option value="7">Caisse claire</option><option value="8">Pluck</option><option value="9">Tok</option><option value="-1">Aucun</option></select></label><label>Décalage <input type="number" class="f" id="rhOffset" min="-300" max="300" step="5" value="0" style="width:80px" title="Réglé tout seul après chaque partie"> ms</label></div>
-      <div class="hint">Le soleil et la lune tournent l'un autour de l'autre. Quand celui qui tourne touche la dalle suivante (la dorée), appuie sur n'importe quelle touche ou clique : il se pose, et c'est l'autre qui tourne.</div><div class="hint">Le chemin suit le rythme : une ligne droite (un demi-tour) dure un temps, un virage à angle droit (un quart de tour) un demi-temps, un virage serré encore moins. Trois points bleus sur une dalle : l'astre y tourne plus lentement ; une boucle rose : il change de sens.</div><div class="hint">La difficulté de chaque niveau est calculée sur ses notes (densité, passages chargés) : de 1★ à 10★.</div>
+      <div class="sysCard rhOpts"><label>Volume <input type="range" id="rhVol" min="0" max="100" value="70"></label><label>Son des clics <select class="f gSel" id="rhClick"><option value="0" selected>Doux</option><option value="1">Clap</option><option value="2">Bois</option><option value="3">Grosse caisse</option><option value="4">Cristal</option><option value="5">Pop</option><option value="6">Charleston</option><option value="7">Caisse claire</option><option value="8">Pluck</option><option value="9">Tok</option><option value="-1">Aucun</option></select></label><label>Décalage <input type="number" class="f" id="rhOffset" min="-300" max="300" step="5" value="0" style="width:80px" title="Réglé tout seul après chaque partie"> ms</label><span class="kbRow">Touches <span class="kbG">Extérieur <button class="btn kb" data-a="a" data-i="0"></button><button class="btn kb" data-a="a" data-i="1"></button></span><span class="kbG">Intérieur <button class="btn kb" data-a="b" data-i="0"></button><button class="btn kb" data-a="b" data-i="1"></button></span><button class="btn kb" id="kbReset">PAR DÉFAUT</button></span><span class="hint kbHint">Clique une case puis appuie sur la touche voulue (Échap : annuler). Les flèches et la manette marchent toujours.</span></div>
+      <div class="hint">Ta planète tourne autour de son étoile sur trois orbites, un tour toutes les deux mesures. Sur chaque note, une étoile filante attend sur l'orbite voisine, avec une flèche qui montre le sens du saut : saute quand son cercle se referme.</div><div class="hint">Une comète arrive sur ton orbite : rester, ou sauter dans le mauvais sens, c'est la prendre. Une traînée dorée : garde la touche jusqu'à son bout, sinon le combo casse.</div><div class="hint">La difficulté de chaque niveau est calculée sur ses notes (densité, passages chargés) : de 1★ à 10★.</div>
     </div></div>
 </div>`;
 const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
@@ -35,7 +35,8 @@ const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
 .rhImport #rhMuList{flex:1;min-width:0}
 .rhOpts{flex-direction:row!important;flex-wrap:wrap;gap:16px;align-items:center}
 .rhOpts label{display:flex;align-items:center;gap:8px}
-.gSide{max-width:460px}`;
+.gSide{max-width:460px}
+.kbRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.kbG{display:flex;align-items:center;gap:6px}.kbRow .kb{height:30px;min-width:30px;padding:0 6px;font-size:13px}.kbRow .kb.wait{outline:3px solid var(--acc,#ff4fa8)}.kbHint{width:100%;margin:0}`;
 /* ---------- l'habillage pixel art, dessiné à la main : police bitmap (accents compris), cadres, boutons, icônes ----------
    Tout est en pixels pleins, agrandis par 2 sans lissage : aucun dégradé, aucune ombre floue. */
 const PXK = (() => {
@@ -1065,7 +1066,7 @@ $('gNew').onclick = () => { if (rh) rhSelect(rh.song, rh.diff); $('gNew').blur()
 function rhInfo() { const res = games.rhythm || {}, all = Object.values(res); showStats([['Morceaux joués', all.length], ['Notes S', all.filter(r => r.grade === 'S').length], ['Meilleur combo', all.reduce((m, r) => Math.max(m, r.combo || 0), 0)]]); }
 function rhOpen() {
   const p = games.rhythmPrefs || {}; for (const id of ['rhVol', 'rhClick', 'rhOffset']) if (p[id] != null) $(id).value = p[id];
-  rhOffMs = +$('rhOffset').value; rhInfo();
+  rhOffMs = +$('rhOffset').value; kbLoad(p.keys); rhInfo();
   if (rh) { rhList(); return gameLoop(rh, RHG.key, RHG.update, rhDrawAll); }
   const last = games.rhythmLast || {song: 0, diff: 'normal'}; rhSelect(last.song, last.diff).catch(() => rhSelect(0, 'normal'));
 }
@@ -1196,6 +1197,33 @@ function orDraw() {
   if (rh.tick % 15 === 0) cv.setAttribute('aria-label', 'Orbites, ' + (rh.info?.name || '') + ' : ' + ({ready: 'prêt', load: 'chargement', play: 'en jeu', pause: 'pause', over: 'fini'}[rh.mode] || rh.mode) + ', score ' + rh.score + ', combo ' + rh.combo + ', ' +
     Object.entries(rh.counts).map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ', orbite ' + (rh.orb + 1) + '.');
 }
+// les touches choisies dans les options : deux par côté. Les flèches et la manette marchent toujours, les autres touches gardent leur côté habituel
+const KB_A0 = ["j", "k"], KB_B0 = ["f", "d"], OR_UP0 = [...OR_UP], OR_DOWN0 = [...OR_DOWN];
+var rhKB = {a: [...KB_A0], b: [...KB_B0]}, kbWait = null;
+function kbApply() {
+  const {a, b} = rhKB, fix = (S, def, mine, other) => { const v = [...new Set([...mine, ...def.filter(k => !other.includes(k))])]; if (S instanceof Set) { S.clear(); v.forEach(k => S.add(k)); } else S.splice(0, S.length, ...v); };
+  fix(OR_UP, OR_UP0, a, b); fix(OR_DOWN, OR_DOWN0, b, a);
+  const n = k => k.toUpperCase(), A = a.map(n).join('/'), B = b.map(n).join('/');
+  view.querySelectorAll('.kbA').forEach(e => { e.textContent = A; }); view.querySelectorAll('.kbB').forEach(e => { e.textContent = B; });
+  view.querySelectorAll('.kb[data-a]').forEach(e => { e.textContent = n(rhKB[e.dataset.a][e.dataset.i]); e.classList.remove('wait'); });
+  RHG.help[0][0] = '↑ ' + A + ' : orbite extérieure · ↓ ' + B + ' : orbite intérieure';
+}
+function kbLoad(k) { const ok = x => Array.isArray(x) && x.length === 2 && x.every(c => typeof c === 'string' && c.length === 1 && c !== ' ' && c !== 'p');
+  rhKB = k && ok(k.a) && ok(k.b) ? {a: [...k.a], b: [...k.b]} : {a: [...KB_A0], b: [...KB_B0]}; kbApply(); }
+console.assert((() => { const s = rhKB; rhKB = {a: ['x', 'c'], b: [KB_A0[0], 'v']}; kbApply(); const r = OR_UP.includes('x') && !OR_UP.includes(KB_A0[0]) && OR_DOWN.includes(KB_A0[0]) && OR_DOWN.includes('v'); rhKB = s; kbApply(); return r && OR_UP.includes(KB_A0[0]); })(), 'kbApply');
+view.querySelectorAll('.kb[data-a]').forEach(e => { e.onclick = () => { kbApply(); kbWait = e; e.textContent = '…'; e.classList.add('wait'); }; });
+$('kbReset').onclick = () => { kbWait = null; delete gstore('rhythmPrefs', {}).keys; saveGames(); kbLoad(null); $('kbReset').blur(); };
+document.addEventListener('keydown', e => {  // la touche attendue par une case : rien d'autre ne la reçoit
+  if (!kbWait) return; e.preventDefault(); e.stopImmediatePropagation();
+  const el = kbWait, k = e.key.length === 1 ? e.key.toLowerCase() : e.key; kbWait = null; el.blur();
+  if (k.length === 1 && k !== ' ' && k !== 'p') {
+    const a = el.dataset.a, i = +el.dataset.i, old = rhKB[a][i];
+    for (const x of ['a', 'b']) for (const j of [0, 1]) if (rhKB[x][j] === k) rhKB[x][j] = old;  // déjà prise par une autre case : les deux s'échangent
+    rhKB[a][i] = k; gstore('rhythmPrefs', {}).keys = rhKB; saveGames();
+  }
+  kbApply();
+}, true);
+kbApply();
 cv.onpointerdown = e => { e.preventDefault(); if (!rh) return; if (rh.mode !== 'play') { rhPress(); return; } const [, y] = cpos(e); orHit(y < H / 2 ? 1 : -1); };  // un clic : en haut vers l'extérieur, en bas vers l'intérieur
 document.addEventListener('keydown', e => {
   if (!keyOk(e) || !rh || e.ctrlKey || e.altKey || e.metaKey) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -1208,7 +1236,7 @@ document.addEventListener('keyup', e => { if (!rh) return; const k = e.key.lengt
 cv.addEventListener('pointerup', () => rh?.held?.clear());
 cv.__rh = {st: () => rh, finish: hist => { rh.hist = hist; rh.mode = 'play'; rhCheckEnd(1e9); }};  // pour le test « local »
 {  // la manette : la croix haut / bas, Y et B vers l'extérieur, A et X vers l'intérieur (la croix gauche aussi), Start lance, Select met en pause
-  const KEY = {12: 'k', 13: 'f', 14: 'f', 15: 'k', 3: 'k', 1: 'k', 0: 'f', 2: 'f', 9: ' ', 8: 'p'}, held = new Set();
+  const KEY = {12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowDown', 15: 'ArrowUp', 3: 'ArrowUp', 1: 'ArrowUp', 0: 'ArrowDown', 2: 'ArrowDown', 9: ' ', 8: 'p'}, held = new Set();
   const send = (k, type) => document.dispatchEvent(new KeyboardEvent(type, {key: k, bubbles: true}));
   const loop = () => {
     requestAnimationFrame(loop); if (!view.classList.contains('on') || !navigator.getGamepads) return;

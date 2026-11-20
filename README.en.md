@@ -10,6 +10,7 @@ A rhythm game in space. Your planet circles its star on three orbits, one lap ev
 - On every note, a **shooting star** waits on the next orbit, with an arrow showing which way to jump; jump when its **circle closes**.
 - A **comet** comes along your orbit: staying, or jumping the wrong way, means hitting it (the note is missed).
 - A **golden trail** follows the star: hold the key until its end, or the combo breaks.
+- **Keys of your choice**: in the options, click a box then press the key you want. Arrows and the gamepad always work.
 - **Gamepad**: d-pad up or down, Y/B outwards, A/X inwards.
 
 ## Accuracy and points

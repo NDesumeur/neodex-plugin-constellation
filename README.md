@@ -10,6 +10,7 @@ Un jeu de rythme dans l'espace. Ta planète tourne autour de son étoile sur tro
 - Sur chaque note, une **étoile filante** attend sur l'orbite voisine, avec une flèche qui montre le sens du saut ; saute quand son **cercle se referme**.
 - Une **comète** arrive sur ton orbite : rester, ou sauter dans le mauvais sens, c'est la prendre (la note est ratée).
 - Une **traînée dorée** suit l'étoile : garde la touche jusqu'à son bout, sinon le combo casse.
+- **Touches au choix** : dans les options, clique une case puis appuie sur la touche voulue. Les flèches et la manette marchent toujours.
 - **Manette** : la croix haut ou bas, Y/B vers l'extérieur, A/X vers l'intérieur.
 
 ## Précision et points
