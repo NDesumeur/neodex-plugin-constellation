@@ -1,9 +1,9 @@
 {
   "pluginId": "neodex.constellation",
   "repo": "NDesumeur/neodex-plugin-constellation",
-  "version": "1.0.2",
-  "sha256": "77f207e92bf8f64d2c067a41b22c91be809b000d2cd1eb5ecc9a2792f371c581",
-  "approvedAt": "2026-11-20T18:05:08.275Z",
+  "version": "1.1.0",
+  "sha256": "eca994b50e9d35c142db1636fd120600bbfc3aeb6628968ce9fbdbf380e8f237",
+  "approvedAt": "2026-11-22T19:05:24.458Z",
   "neobase": ">=4.1.0",
-  "signature": "FSzAc34631Dbd7BIX8HvPnMGz+OSCnfgXcxoC1E1CvnN+9fdZ4DHNlE56lHH8ROs0qmI++Nvfx5QwSt/gvsqAw=="
+  "signature": "G+yNEkT4n5dI3DXGv+UN1qbiMgbdbv40Ya4yiM7NcuLwNeYj3Ll7TC3UnXhXfB6Dfz2eOOpaNIrcE8qGDICsDA=="
 }
