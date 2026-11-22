@@ -10,10 +10,12 @@ const HTML = `<div class="appWrap wide">
       <div class="sysCard rhImport" id="rhImport" style="display:none"><div class="row"><button class="btn main" id="rhFileBtn">IMPORTER UN FICHIER AUDIO</button><input type="file" id="rhFile" accept="audio/*,.mp3,.m4a,.ogg,.opus,.wav,.flac,.webm" hidden></div><div class="row"><select class="f" id="rhMuList"></select><button class="btn" id="rhMuBtn">CRÉER LE NIVEAU</button></div><div class="row"><label>Difficulté <select class="f" id="rhStars"><option value="1">1 ★</option><option value="2">2 ★</option><option value="3" selected>3 ★</option><option value="4">4 ★</option><option value="5">5 ★</option><option value="6">6 ★</option><option value="7">7 ★</option><option value="8">8 ★</option><option value="9">9 ★</option><option value="10">10 ★</option></select></label></div><span class="hint" id="rhImpMsg">Un fichier ou une musique de NeoMusic : le jeu trouve son tempo et ses temps forts et en fait un niveau.</span></div>
       <div id="rhSongs"></div>
       <div class="sysCard rhOpts"><label>Volume <input type="range" id="rhVol" min="0" max="100" value="70"></label><label>Son des clics <select class="f gSel" id="rhClick"><option value="0" selected>Doux</option><option value="1">Clap</option><option value="2">Bois</option><option value="3">Grosse caisse</option><option value="4">Cristal</option><option value="5">Pop</option><option value="6">Charleston</option><option value="7">Caisse claire</option><option value="8">Pluck</option><option value="9">Tok</option><option value="-1">Aucun</option></select></label><label>Décalage <input type="number" class="f" id="rhOffset" min="-300" max="300" step="5" value="0" style="width:80px" title="Réglé tout seul après chaque partie"> ms</label><span class="kbRow">Touches <span class="kbG">Extérieur <button class="btn kb" data-a="a" data-i="0"></button><button class="btn kb" data-a="a" data-i="1"></button></span><span class="kbG">Intérieur <button class="btn kb" data-a="b" data-i="0"></button><button class="btn kb" data-a="b" data-i="1"></button></span><button class="btn kb" id="kbReset">PAR DÉFAUT</button></span><span class="hint kbHint">Clique une case puis appuie sur la touche voulue (Échap : annuler). Les flèches et la manette marchent toujours.</span></div>
+      <div class="sysCard orSkyCard"><b>MON CIEL</b><canvas id="orSky" width="320" height="160"></canvas><div class="hint" id="orSkyN"></div></div>
       <div class="hint">Ta planète tourne autour de son étoile sur trois orbites, un tour toutes les deux mesures. Sur chaque note, une étoile filante attend sur l'orbite voisine, avec une flèche qui montre le sens du saut : saute quand son cercle se referme.</div><div class="hint">Une comète arrive sur ton orbite : rester, ou sauter dans le mauvais sens, c'est la prendre. Une traînée dorée : garde la touche jusqu'à son bout, sinon le combo casse.</div><div class="hint">La difficulté de chaque niveau est calculée sur ses notes (densité, passages chargés) : de 1★ à 10★.</div>
     </div></div>
 </div>`;
-const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+const CSS = `#orSky{width:100%;max-width:640px;image-rendering:pixelated;display:block;margin:6px 0;border-radius:4px}
+.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
 .gameBox{display:grid;place-items:center;padding:10px;background:#05010b;flex:2;min-width:320px;position:relative}
 .gameBox canvas{width:100%;image-rendering:pixelated;cursor:var(--cp,pointer);touch-action:none}
 .gSide{display:flex;flex-direction:column;gap:14px;flex:1;min-width:250px;max-width:420px}
@@ -944,7 +946,7 @@ function rhCheckEnd(now) {
   rh.acc = acc; rh.grade = acc >= .95 ? 'S' : acc >= .9 ? 'A' : acc >= .8 ? 'B' : acc >= .7 ? 'C' : 'D';
   const k = rh.info.key, res = gstore('rhythm', {}); rh.record = best(k, rh.score);
   if (rh.record || !res[k]) res[k] = {score: rh.score, acc: Math.round(acc * 1000) / 10, grade: rh.grade, combo: rh.maxCombo};
-  rh.adj = rhAutoOffset(rh.dts); saveGames(); sfx('SAB'.includes(rh.grade) ? 'launch' : 'notify'); rhList(); rhInfo();
+  rh.adj = rhAutoOffset(rh.dts); RHG.over?.(); saveGames(); sfx('SAB'.includes(rh.grade) ? 'launch' : 'notify'); rhList(); rhInfo();
   return true;
 }
 function rhOffsetStep(dts) {  // décalage automatique : si tu tapes en moyenne en retard (ou en avance), on corrige de 70 % de l'écart
@@ -1090,7 +1092,8 @@ const RHG = {key: 'constellation', factor: 1.05, color: '#ffd84a',
     out.forEach((n, i) => { if (n.len && out[i + 1]) n.len = Math.min(n.len, out[i + 1].t - n.t - OR.MIN * beat); if (n.len < beat * .5) n.len = 0; });  // une traînée finit avant la note suivante
     return out;
   },
-  reset() { Object.assign(rh, {judge: null, tap: -99, tapDir: 0, shake: 0, orb: 1, orbFrom: 1, orbAt: -9, held: new Set(), trail: [], beat: (rh.c?.step || .125) * 4, b0: rh.c?.beat0 || 0}); },
+  reset() { Object.assign(rh, {judge: null, tap: -99, tapDir: 0, shake: 0, orb: 1, orbFrom: 1, orbAt: -9, held: new Set(), trail: [], beat: (rh.c?.step || .125) * 4, b0: rh.c?.beat0 || 0, pins: [], pinK: -1, pinAt: -99, cons: null}); },
+  over() { orSave(); },
   update() { orStep(rhNow()); },
   draw() { orDraw(); },
 };
@@ -1098,12 +1101,38 @@ const orAng = t => -Math.PI / 2 + 2 * Math.PI * (t - rh.b0) / (OR.TURN * rh.beat
 const orPre = () => Math.min(1.7, OR.TURN * rh.beat * .62);  // le temps où l'on voit venir une note (jamais un tour entier : elle passerait sur la planète)
 function orMove(to, now) { if (to === rh.orb) return; rh.orbFrom = orRad(now); rh.orb = to; rh.orbAt = now; }
 function orRad(now) { const k = Math.min(1, (now - rh.orbAt) / .09), e = 1 - (1 - k) ** 3; return rh.orbFrom + (OR.RAD[rh.orb] - rh.orbFrom) * e; }  // le saut d'orbite en 90 ms
+/* ---------- 1.1.0 : la constellation du morceau (une étoile accrochée au ciel toutes les 4 mesures), gardée dans « Mon ciel » ---------- */
+const OR_FIG = ['La Lyre', 'Le Cerf', 'La Harpe', 'Le Phare', 'La Barque', 'Le Renard', 'La Couronne', 'Le Héron', 'La Fontaine', 'Le Dragon', 'La Clé', 'Le Voilier', 'La Baleine', 'Le Hibou', 'La Lanterne', 'Le Cheval'];
+const OR_SKY_MAX = 36, OR_PIN_MAX = 24;  // de quoi garder la synchro légère : 36 constellations de 24 étoiles au plus
+function orPin(n, a, r) {  // la première étoile attrapée de chaque passage de 4 mesures reste au ciel, un peu plus près ou plus loin que son orbite
+  const k = Math.floor((n.t - rh.b0) / (rh.beat * 16)); if (k === rh.pinK || rh.pins.length >= OR_PIN_MAX) return; rh.pinK = k;
+  const j = .5 + (n.t * 977 % 1) * 1.1; rh.pins.push([Math.round(Math.cos(a) * r * j), Math.round(Math.sin(a) * r * j)]); rh.pinAt = rh.tick;
+}
+function orFigure(P, ox, oy, s, g2 = g, lit = true) {  // une constellation : des traits en pointillé entre les étoiles, dans l'ordre où elles ont été attrapées
+  for (let i = 1; i < P.length; i++) { const [ax, ay] = P[i - 1], [bx, by] = P[i], L = Math.hypot(bx - ax, by - ay) * s; for (let d = 2; d < L - 2; d += 3) px(g2, '#3a4a8a', ox + (ax + (bx - ax) * d / L) * s, oy + (ay + (by - ay) * d / L) * s, 1, 1); }
+  P.forEach(([x, y], i) => { const X = Math.round(ox + x * s), Y = Math.round(oy + y * s), c = lit && i === P.length - 1 ? '#ffd84a' : '#e8f0ff'; px(g2, c, X, Y, 1, 1); px(g2, '#6a7ac8', X - 1, Y, 1, 1); px(g2, '#6a7ac8', X + 1, Y, 1, 1); px(g2, '#6a7ac8', X, Y - 1, 1, 1); px(g2, '#6a7ac8', X, Y + 1, 1, 1); });
+}
+function orSave() {  // la fin du morceau : la constellation reçoit un nom et va dans « Mon ciel »
+  rh.cons = null; const P = rh.pins || []; if (P.length < 3) return;
+  const S = gstore('orbitesSky', []), f = Math.floor(seeded(rh.info.name.length * 13 + P.length * 7 + S.length)() * OR_FIG.length);
+  rh.cons = {f, s: rh.info.name.slice(0, 40), d: new Date().toISOString().slice(0, 10), p: P}; S.push(rh.cons); if (S.length > OR_SKY_MAX) S.splice(0, S.length - OR_SKY_MAX);
+  orSkyDraw();
+}
+function orSkyDraw() {  // « Mon ciel » : les 18 dernières constellations, chacune dans sa case du ciel
+  const c = $('orSky'); if (!c) return; const b = c.getContext('2d'), S = games.orbitesSky || [], L = S.slice(-18);
+  b.drawImage(OR_BG, 0, 0);
+  L.forEach((k, i) => { const r = seeded(i * 31 + 5), xs = k.p.map(q => q[0]), ys = k.p.map(q => q[1]), s = Math.min(.6, 42 / Math.max(1, Math.max(...xs) - Math.min(...xs)), 42 / Math.max(1, Math.max(...ys) - Math.min(...ys)));
+    orFigure(k.p, 27 + (i % 6) * 53 + (r() - .5) * 6 - (Math.max(...xs) + Math.min(...xs)) / 2 * s, 27 + Math.floor(i / 6) * 53 + (r() - .5) * 6 - (Math.max(...ys) + Math.min(...ys)) / 2 * s, s, b, false); });
+  $('orSkyN').textContent = S.length ? S.length + (S.length > 1 ? ' constellations' : ' constellation') + ' · la dernière : ' + OR_FIG[S.at(-1).f] + ' (' + S.at(-1).s + ')' : 'Ton ciel est vide : chaque morceau joué y laisse sa constellation.';
+}
+{ const P = [[0, 0], [30, -20], [-10, 40]]; const c = cnv(20, 20, b => orFigure(P, 10, 10, .2, b)); console.assert(c.width === 20 && OR_FIG.length === 16, 'orFigure'); }
 function orFx(n, w, now) {
   const a = orAng(n.t), r = OR.RAD[n.to], x = OR.CX + Math.cos(a) * r, y = OR.CY + Math.sin(a) * r;
   rh.judge = {text: w ? w[1] : n.wrong ? 'COMÈTE' : 'RATÉ', col: w ? w[3] : '#ff6a5a', t: 26};
   orMove(n.to, now);  // touché ou pas, la planète finit sur l'orbite de la note (la comète l'y pousse)
   if (!w) { rh.shake = 10; for (let i = 0; i < 14; i++) { const b = Math.random() * 6.28, v = .5 + Math.random() * 2; rh.sparks.push({x, y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, life: 22, col: i % 2 ? '#ff6a5a' : '#9ad8ff'}); } return; }
   for (let i = 0; i < 16; i++) { const b = Math.random() * 6.28, v = .6 + Math.random() * 1.8; rh.sparks.push({x, y, vx: Math.cos(b) * v, vy: Math.sin(b) * v, life: 24, col: i % 3 ? '#ffd84a' : '#ffffff'}); }
+  orPin(n, a, r);
   if (n.len) n.holding = n.dir;
 }
 function orStep(now) {
@@ -1153,6 +1182,7 @@ function orDraw() {
   const live = rh.mode === 'play' || rh.mode === 'pause', now = live ? rhNow() : 0, sh = rh.shake ? (rh.shake % 2 ? 2 : -2) : 0, CX = OR.CX + sh, CY = OR.CY, pre = orPre();
   g.drawImage(OR_BG, 0, 0);
   for (const [x, y, p] of OR_TWINKLE) { const v = Math.sin(rh.tick / 14 + p); if (v > .3) { px(g, v > .8 ? '#ffffff' : '#8a9ac8', x, y); if (v > .8) { px(g, '#4a5a8a', x - 1, y); px(g, '#4a5a8a', x + 1, y); } } }
+  if (live && rh.pins.length) { orFigure(rh.pins, CX, CY, 1, g, rh.tick - rh.pinAt < 40); }
   // l'étoile au centre : son halo bat sur les temps de la musique
   const ph = live ? ((now - rh.b0) / rh.beat % 1 + 1) % 1 : .5, pulse = Math.max(0, 1 - ph * 4);
   for (let y = -26; y <= 26; y++) for (let x = -26; x <= 26; x++) { const d = Math.hypot(x, y), R = 13 + pulse * 3;
@@ -1194,6 +1224,9 @@ function orDraw() {
   }
   if (rh.mode === 'play' && now < 0) pxFont(g, String(Math.ceil(-now)), W / 2, 60, '#ffd84a', 16, 'center');
   rhScreens(60);
+  if (rh.mode === 'over' && rh.tick - rh.overAt > 20 && rh.cons) { const P = rh.cons.p, xs = P.map(q => q[0]), ys = P.map(q => q[1]), s = Math.min(1, 120 / Math.max(1, Math.max(...xs) - Math.min(...xs)), 30 / Math.max(1, Math.max(...ys) - Math.min(...ys)));
+    g.fillStyle = 'rgba(3,4,14,.88)'; g.fillRect(W / 2 - 70, 188, 140, 46); orFigure(P, W / 2 - (Math.max(...xs) + Math.min(...xs)) / 2 * s, 216 - (Math.max(...ys) + Math.min(...ys)) / 2 * s, s);
+    pxFont(g, 'TA CONSTELLATION : ' + OR_FIG[rh.cons.f].toUpperCase(), W / 2, 196, '#ffd84a', 6, 'center'); }
   if (rh.tick % 15 === 0) cv.setAttribute('aria-label', 'Orbites, ' + (rh.info?.name || '') + ' : ' + ({ready: 'prêt', load: 'chargement', play: 'en jeu', pause: 'pause', over: 'fini'}[rh.mode] || rh.mode) + ', score ' + rh.score + ', combo ' + rh.combo + ', ' +
     Object.entries(rh.counts).map(([k, v]) => k.toLowerCase() + ' ' + v).join(', ') + ', orbite ' + (rh.orb + 1) + '.');
 }
@@ -1234,7 +1267,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { if (!rh) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, d = OR_UP.includes(k) ? 1 : OR_DOWN.includes(k) ? -1 : 0;
   if (d) rh.held?.delete(d); if (e.key === ' ' && keyOk(e)) e.preventDefault(); });
 cv.addEventListener('pointerup', () => rh?.held?.clear());
-cv.__rh = {st: () => rh, finish: hist => { rh.hist = hist; rh.mode = 'play'; rhCheckEnd(1e9); }};  // pour le test « local »
+cv.__rh = {sky: () => [(games.orbitesSky || []).length, $('orSkyN').textContent], st: () => rh, finish: hist => { rh.hist = hist; rh.mode = 'play'; rhCheckEnd(1e9); }};  // pour le test « local »
 {  // la manette : la croix haut / bas, Y et B vers l'extérieur, A et X vers l'intérieur (la croix gauche aussi), Start lance, Select met en pause
   const KEY = {12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowDown', 15: 'ArrowUp', 3: 'ArrowUp', 1: 'ArrowUp', 0: 'ArrowDown', 2: 'ArrowDown', 9: ' ', 8: 'p'}, held = new Set();
   const send = (k, type) => document.dispatchEvent(new KeyboardEvent(type, {key: k, bubbles: true}));

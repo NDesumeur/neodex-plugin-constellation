@@ -42,3 +42,7 @@ Tes scores et notes par niveau et tes réglages sont enregistrés par NeoDex, sa
 Dans NeoDex : **NeoStore → À découvrir → Orbites → Installer**.
 
 Développer un plugin : voir le [SDK NeoDex](https://github.com/NDesumeur/neodex-sdk).
+
+## Ta constellation et « Mon ciel »
+
+Pendant le morceau, la première étoile filante attrapée de chaque passage de 4 mesures reste accrochée au ciel, reliée à la précédente par un pointillé : ta constellation se dessine derrière les orbites. À la fin, elle reçoit un nom (la Lyre, le Cerf, la Baleine…) et va dans « Mon ciel », sous la liste des morceaux, avec les 18 dernières. Le ciel en garde 36 au plus.

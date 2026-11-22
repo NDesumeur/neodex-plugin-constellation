@@ -42,3 +42,7 @@ Your scores and grades per level and your settings are stored by NeoDex, backed 
 In NeoDex: **NeoStore → Discover → Orbites → Install**.
 
 Building a plugin: see the [NeoDex SDK](https://github.com/NDesumeur/neodex-sdk).
+
+## Your constellation and “My sky”
+
+During the song, the first shooting star you catch in each 4-bar section stays pinned in the sky, linked to the previous one by a dotted line: your constellation is drawn behind the orbits. At the end it gets a name (the Lyre, the Stag, the Whale…) and goes to “My sky”, below the song list, with the last 18. The sky keeps 36 at most.
